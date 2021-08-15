@@ -10,16 +10,17 @@ start_server() ->
 server() ->
   receive
     {range, Lower, Upper, Num} ->
+      %% Father = self(),
       %% start the clock! SPEEEEEEEEEEEEEEEEEEEEEED!
       {_, S, US} = os:timestamp(),
 
       %% of our range
       Quantity = round((Upper - Lower) + 1),
 
-      %% a function that send messages that they compute a distributed range each about instance I.
-      SpawnN = fun(I) -> spawn(totientrangeNWorkers, totientWorker, []) ! {range, round(1 + I * Quantity/Num), round(1 + (I+1) * Quantity/Num - 1)} end,
+      %% a function that spawns watcher instances
+      SpawnN = fun(I) -> spawn(totientrangeNWorkersReliable, watcher, [I, {range, round(1 + I * Quantity/Num), round(1 + (I+1) * Quantity/Num - 1)}]) end,
 
-      %% spawns and registers Num number of totientWorkers
+      %% spawns and registers Num number of watcher instances
       lists:map(SpawnN, lists:seq(0, Num-1)),
 
       %% function to receive the range sum from the spawned workers
@@ -40,6 +41,7 @@ server() ->
       io:format("Server has disconnected.~n", []),
       done
   end.
+%% --------------------------------------------------
 
 totientWorker() ->
   receive
