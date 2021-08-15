@@ -2,6 +2,18 @@
 
 -export([start_server/0, server/0, totientWorker/0, watcher/2, testRobust/2, workerChaos/2, hcf/2, relprime/2, euler/1, sumTotient/2]).
 
+%% KINKY STUFF --------------------------------------
+testRobust(NWorkers,NVictims) ->
+ ServerPid = whereis(server),
+ if ServerPid == undefined ->
+ start_server();
+  true ->
+    ok
+  end,
+ server ! {range, 1, 15000, NWorkers},
+ workerChaos(NVictims,NWorkers).
+%% --------------------------------------------------
+
 %% HEART OF PROGRAM ---------------------------------
 start_server() ->
   register(server, spawn(totientrangeNWorkersReliable, server, [])),
