@@ -8,7 +8,7 @@ This program simulates an environment where any of its important processes may b
 As such, a reliable implementation will restart them, and proceed as normal.
 
 ### Totient Function
-In number theory, Euler's totient function counts the positive integers up to a given integer n that are relatively prime to n. It is written using the Greek letter phi as &amp;varphi; or &amp;phi;, and may also be called Euler's phi function.
+In number theory, Euler's totient function counts the positive integers up to a given integer n that are relatively prime to n. It is written using the Greek letter phi as &varphi; or &phi;, and may also be called Euler's phi function.
 
 ### Expected Output
 `> totientrange:testRobust(4, 3).`\
