@@ -41,4 +41,5 @@ compile from the shell: `>c(totientrange).`
 `NWorkers` number of workers\
 `ATotient` beginning integer for totient range\
 `BTotient` ending integer for totient range\
-run from the shell:     `>server ! {range, ATotient, BTotient, NWorkers}.`\
+run from the shell:     `>server ! {range, ATotient, BTotient, NWorkers}.
+
