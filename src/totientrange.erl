@@ -1,10 +1,10 @@
--module(totientrangeNWorkers).
+-module(totientrangeNWorkersReliable).
 
--export([start_server/0, server/0, totientWorker/0, hcf/2, relprime/2, euler/1, sumTotient/2]).
+-export([start_server/0, server/0, totientWorker/0, watcher/2, testRobust/2, workerChaos/2, hcf/2, relprime/2, euler/1, sumTotient/2]).
 
-
+%% HEART OF PROGRAM ---------------------------------
 start_server() ->
-  register(server, spawn(totientrangeNWorkers, server, [])),
+  register(server, spawn(totientrangeNWorkersReliable, server, [])),
   true.
 
 server() ->
@@ -41,6 +41,28 @@ server() ->
       io:format("Server has disconnected.~n", []),
       done
   end.
+%% --------------------------------------------------
+
+%% DEATH TO ALL -------------------------------------
+workerChaos(NVictims,NWorkers) ->
+ lists:map(
+ fun(_) ->
+  timer:sleep(500), %% Sleep for .5s
+  %% Choose a random victim
+  WorkerNum = rand:uniform(NWorkers),
+  io:format("workerChaos killing ~p~n",
+  [workerName(WorkerNum)]),
+  WorkerPid = whereis(workerName(WorkerNum)),
+  if %% Check if victim is alive
+  WorkerPid == undefined ->
+  io:format("workerChaos already dead: ~p~n",
+  [workerName(WorkerNum)]);
+
+ true -> %% Kill Kill Kill
+  exit(whereis(workerName(WorkerNum)),chaos)
+  end
+ end,
+ lists:seq(1, NVictims )).
 %% --------------------------------------------------
 
 %% WORKER GETS ID -----------------------------------
@@ -94,6 +116,7 @@ totientWorker() ->
   end.
 %% --------------------------------------------------
 
+%% MATHS LOGIC --------------------------------------
 hcf(X,0) ->
   X;
 hcf(X,Y) ->
@@ -132,3 +155,5 @@ printElapsed(S,US) ->
 sumTotient(Lower,Upper) ->
   Res = lists:sum(lists:map(fun euler/1,lists:seq(Lower, Upper))),
   Res.
+
+%% --------------------------------------------------
