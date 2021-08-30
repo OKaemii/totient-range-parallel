@@ -1,4 +1,4 @@
--module(totientrangeNWorkersReliable).
+-module(totientrange).
 
 -export([start_server/0, server/0, totientWorker/0, watcher/2, testRobust/2, workerChaos/2, hcf/2, relprime/2, euler/1, sumTotient/2]).
 
