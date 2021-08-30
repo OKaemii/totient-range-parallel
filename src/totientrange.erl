@@ -46,6 +46,15 @@ server() ->
 totientWorker() ->
   receive
     %% compute the sum of the totient range
+    {range, Lower, Upper} ->
+      %% send sum to server
+      io:format("Worker: Computing Range ~p ~p~n", [Lower, Upper]),
+      Calc = sumTotient(round(Lower), round(Upper)),
+      server ! {range, Calc},
+      totientWorker();
+
+    finished ->
+      io:format("Worker: Finished~n", [])
   end.
 
 hcf(X,0) ->
