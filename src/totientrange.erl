@@ -16,7 +16,7 @@ testRobust(NWorkers,NVictims) ->
 
 %% HEART OF PROGRAM ---------------------------------
 start_server() ->
-  register(server, spawn(totientrangeNWorkersReliable, server, [])),
+  register(server, spawn(totientrange, server, [])),
   true.
 
 server() ->
@@ -30,7 +30,7 @@ server() ->
       Quantity = round((Upper - Lower) + 1),
 
       %% a function that spawns watcher instances
-      SpawnN = fun(I) -> spawn(totientrangeNWorkersReliable, watcher, [I, {range, round(1 + I * Quantity/Num), round(1 + (I+1) * Quantity/Num - 1)}]) end,
+      SpawnN = fun(I) -> spawn(totientrange, watcher, [I, {range, round(1 + I * Quantity/Num), round(1 + (I+1) * Quantity/Num - 1)}]) end,
 
       %% spawns and registers Num number of watcher instances
       lists:map(SpawnN, lists:seq(0, Num-1)),
@@ -90,7 +90,7 @@ watcher(I, Payload) ->
 
   %% slap on that ID badge PERMANENTLY TILL DEATH for worker
   %% assign worker to be a totientWorker
-  register(Worker, spawn_link(totientrangeNWorkersReliable, totientWorker, [])),
+  register(Worker, spawn_link(totientrange, totientWorker, [])),
 
   %% task Worker:totientWorker with payload to do for the day
   Worker ! Payload,
