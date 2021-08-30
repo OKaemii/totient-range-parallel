@@ -43,7 +43,41 @@ server() ->
   end.
 %% --------------------------------------------------
 
+%% WORKER GETS ID -----------------------------------
+workerName(Num) ->
+ list_to_atom("worker" ++ integer_to_list(Num)).
+%% --------------------------------------------------
+
+%% MANAGEMENT AND HIS TEAM --------------------------
+watcher(I, Payload) ->
+  %% worker picks up unique ID card
+  Worker = workerName(I+1),
+  io:format("Watching ClientWorker ~p~n", [Worker]),
+
+  %% slap on that ID badge PERMANENTLY TILL DEATH for worker
+  %% assign worker to be a totientWorker
+  register(Worker, spawn_link(totientrangeNWorkersReliable, totientWorker, [])),
+
+  %% task Worker:totientWorker with payload to do for the day
+  Worker ! Payload,
+  receive
+    %% not a crash
+    {"EXIT", PID, normal} ->
+      ok;
+
+    %% crashed
+    {"EXIT", PID, _} ->
+      %% if Worker:totientWorker dies, restart it
+      watcher(I, Payload);
+
+    finished ->
+      io:format("Watcher Finished~n" ,[])
+  end.
+
 totientWorker() ->
+  %% trap all exits of for program.
+  process_flag(trap_exit, true),
+
   receive
     %% compute the sum of the totient range
     {range, Lower, Upper} ->
@@ -58,6 +92,7 @@ totientWorker() ->
       io:format("Worker: Finished~n", [])
 
   end.
+%% --------------------------------------------------
 
 hcf(X,0) ->
   X;
