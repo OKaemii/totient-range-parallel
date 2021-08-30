@@ -33,7 +33,7 @@ Server : Received Sum 21371600\
 Worker : Finished\
 Server : Received Sum 29923304\
 Server : Sum of totients : 68394316\
-Server : Time taken in Secs , MicroSecs 13 302830\
+Server : Time taken in Secs , MicroSecs 13 302830
 
 ### Manual
 compile from the shell: `>c(totientrange).`
