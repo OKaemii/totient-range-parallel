@@ -1,42 +1,40 @@
--module(totientrange2Workers).
+-module(totientrangeNWorkers).
 
 -export([start_server/0, server/0, totientWorker/0, hcf/2, relprime/2, euler/1, sumTotient/2]).
 
 
 start_server() ->
-  register(server, spawn(totientrange2Workers, server, [])),
+  register(server, spawn(totientrangeNWorkers, server, [])),
   true.
 
 server() ->
   receive
-    {range, Lower, Upper} ->
-      %% Father = self(),
-
-      %% start time
+    {range, Lower, Upper, Num} ->
+      %% start the clock! SPEEEEEEEEEEEEEEEEEEEEEED!
       {_, S, US} = os:timestamp(),
 
-      %% spawns and registers two totientWorkers
-      Worker_PID1 = spawn(totientrange2Workers, totientWorker, []),
-      Worker_PID2 = spawn(totientrange2Workers, totientWorker, []),
+      %% of our range
+      Quantity = round((Upper - Lower) + 1),
 
-      %% send messages that they compute half of the range each
-      %% io:format("~p sends with ~p:(~p, ~p); ~p:(~p, ~p).~n",[Father, Worker_PID1, Lower, Upper/2,Worker_PID2,Upper/2 + 1, Upper]),
-      Worker_PID1 ! {range, round(Lower), round(Upper/2)},
-      Worker_PID2 ! {range, round(Upper/2 + 1), round(Upper)},
+      %% a function that send messages that they compute a distributed range each about instance I.
+      SpawnN = fun(I) -> spawn(totientrangeNWorkers, totientWorker, []) ! {range, round(1 + I * Quantity/Num), round(1 + (I+1) * Quantity/Num - 1)} end,
 
-      %% receives the range sum from the two workers
-      Result_1 = receive {range, Calc1} -> Calc1 end,
-      io:format("Server: Received Sum ~p~n", [Result_1]),
-      Result_2 = receive {range, Calc2} -> Calc2 end,
-      io:format("Server: Received Sum ~p~n", [Result_2]),
-      Total = Result_1 + Result_2,
+      %% spawns and registers Num number of totientWorkers
+      lists:map(SpawnN, lists:seq(0, Num-1)),
 
-      %% prints total, continue as server
+      %% function to receive the range sum from the spawned workers
+      Results = fun(I) -> receive {range, R} -> io:format("Server: Received Sum ~p~n", [R]), R end end,
+      %% sum the distributed parts of workers to get back whole
+      Total = lists:sum(lists:map(Results, lists:seq(0, Num-1))),
+
+      %% prints total
       io:format("Server: Sum of totients: ~p~n",[Total]),
 
-      Worker_PID1 ! finished,
-      Worker_PID2 ! finished,
-      printElapsed(S,US);
+      %% print total execution time of instance
+      printElapsed(S,US),
+
+      %% continue as server
+      server();
 
     finished ->
       io:format("Server has disconnected.~n", []),
@@ -47,14 +45,16 @@ totientWorker() ->
   receive
     %% compute the sum of the totient range
     {range, Lower, Upper} ->
-      %% send sum to server
+      %% display work assigned
       io:format("Worker: Computing Range ~p ~p~n", [Lower, Upper]),
       Calc = sumTotient(round(Lower), round(Upper)),
-      server ! {range, Calc},
-      totientWorker();
 
-    finished ->
+      %% send sum to server
+      server ! {range, Calc},
+
+      %% let worker die after
       io:format("Worker: Finished~n", [])
+
   end.
 
 hcf(X,0) ->
